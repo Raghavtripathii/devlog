@@ -1,0 +1,23 @@
+# This file tells Docker what services to run.
+# Right now it's just the database, but later we'll add the backend too.
+
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: devlog_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: devlog_user
+      POSTGRES_PASSWORD: devlog_secret
+      POSTGRES_DB: devlog
+    ports:
+      # left side = port on your Windows machine, right = port inside Docker
+      - "5432:5432"
+    volumes:
+      # this keeps your data even if you restart Docker
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
