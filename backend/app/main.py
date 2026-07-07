@@ -1,8 +1,7 @@
-# The entry point for the FastAPI application.
-# This is where everything gets wired together.
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.routers import auth
 
 app = FastAPI(
     title="DevLog API",
@@ -10,8 +9,6 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS lets our React frontend (running on localhost:5173) talk to this API.
-# Without this, the browser would block all requests.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://localhost:3000"],
@@ -20,10 +17,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Register route groups
+app.include_router(auth.router)
+
 
 @app.get("/health", tags=["health"])
 def health_check():
-    """Quick endpoint to check if the API is alive. Used by CI/CD."""
     return {"status": "ok", "service": "devlog-api"}
 
 
