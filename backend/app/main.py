@@ -1,7 +1,8 @@
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import auth
+from app.routers import auth, sessions, goals, profile
 
 app = FastAPI(
     title="DevLog API",
@@ -17,8 +18,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Register route groups
 app.include_router(auth.router)
+app.include_router(sessions.router)
+app.include_router(goals.router)
+app.include_router(profile.router)
 
 
 @app.get("/health", tags=["health"])
