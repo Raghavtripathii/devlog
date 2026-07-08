@@ -1,4 +1,3 @@
-# routers/sessions.py
 # CRUD for coding sessions. All endpoints require a valid JWT token.
 
 from typing import List
@@ -10,6 +9,9 @@ from app.models.session import CodingSession
 from app.models.user import User
 from app.schemas.session import SessionCreate, SessionOut
 from app.services.deps import get_current_user
+
+from datetime import datetime, timedelta
+from app.services.ai_recap import generate_weekly_recap
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -58,3 +60,38 @@ def delete_session(
         raise HTTPException(status_code=404, detail="Session not found")
     db.delete(session)
     db.commit()
+
+
+@router.get("/recap/weekly", response_model=dict)
+def get_weekly_recap(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns an AI-generated summary of the current week's sessions."""
+    # Get Monday of the current week
+    today = datetime.utcnow()
+    week_start = today - timedelta(days=today.weekday())
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    sessions = (
+        db.query(CodingSession)
+        .filter(
+            CodingSession.user_id == current_user.id,
+            CodingSession.logged_at >= week_start,
+        )
+        .all()
+    )
+
+    session_dicts = [
+        {"language": s.language, "hours": s.hours, "what_i_built": s.what_i_built, "mood": s.mood}
+        for s in sessions
+    ]
+
+    recap = generate_weekly_recap(current_user.username, session_dicts)
+
+    return {
+        "week_start": week_start,
+        "total_hours": sum(s["hours"] for s in session_dicts),
+        "session_count": len(session_dicts),
+        "recap": recap,
+    }
