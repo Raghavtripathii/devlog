@@ -29,3 +29,7 @@ Thumbs.db
 
 # VS Code
 .vscode/settings.json
+
+# Test database created by pytest — never commit this
+backend/test.db
+test.db
