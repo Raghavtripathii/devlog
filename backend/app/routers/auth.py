@@ -1,6 +1,6 @@
 # Register and login endpoints.
 # These are the only endpoints that don't require an auth token.
-
+from app.services.deps import get_current_user
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -56,3 +56,9 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
     token = create_access_token({"sub": str(user.id)})
     return {"access_token": token, "token_type": "bearer"}
+
+
+@router.get("/me", response_model=UserPublic)
+def get_me(current_user: User = Depends(get_current_user)):
+    """Returns the currently logged-in user. Used by frontend to verify tokens."""
+    return current_user
