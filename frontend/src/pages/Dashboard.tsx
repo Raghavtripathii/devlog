@@ -1,3 +1,5 @@
+import { Skeleton } from "../components/Skeleton";
+
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import api from "../lib/api";
@@ -10,7 +12,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const { data: sessions = [] } = useQuery<Session[]>({
+  const { data: sessions = [], isLoading: isSessionsLoading } = useQuery<Session[]>({
     queryKey: ["sessions"],
     queryFn: () => api.get("/sessions/").then((r) => r.data),
   });
@@ -90,7 +92,14 @@ export default function Dashboard() {
           {/* Recent sessions */}
           <div className="space-y-3">
             <h2 className="font-semibold text-white">Recent sessions</h2>
-            {sessions.length === 0 && (
+            {isSessionsLoading && (
+              <div className="space-y-3">
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+                <Skeleton className="h-16" />
+              </div>
+            )}
+            {sessions.length === 0 && !isSessionsLoading && (
               <p className="text-surface-100/40 text-sm">No sessions yet. Log your first one!</p>
             )}
             {sessions.slice(0, 8).map((s) => (
